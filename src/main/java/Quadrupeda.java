@@ -1,19 +1,23 @@
 import java.util.Stack;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 public class Quadrupeda {
 
-    public static void main(String args[]) {
+    public static void main(String args[]) throws Exception {
 
-        Stack<Crawler> siteLink = new Stack<Crawler>();
+        ExecutorService service = Executors.newFixedThreadPool(3);
 
-        // Creating a new Crawler
-        Crawler crawlerOne = new Crawler();
-        Crawler crawlerTwo = new Crawler();
-        Crawler crawlerThree = new Crawler();
+        Future<Stack<String>> linkThread = service.submit(new CrawlerVersion2("http://frooplexp.com"));
 
-        System.out.println(crawlerOne.getThreadId());
-        System.out.println(crawlerTwo.getThreadId());
-        System.out.println(crawlerThree.getThreadId());
+        Stack<String> links = linkThread.get();
+
+        while (!links.isEmpty()) {
+            System.out.println(links.pop());
+        }
+
 
     }
 

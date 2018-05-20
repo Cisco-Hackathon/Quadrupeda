@@ -24,34 +24,57 @@ public class Crawler implements Runnable {
     // Main thread process
     public void run() {
 
+        try {
 
+            // Getting page content
+            Document pageContent = getSiteContents(this.crawlerUrl);
+
+            // Getting the links from the page content
+            Stack<String> pageLinks = getLinksFromSite(pageContent);
+
+            // Creating a crawler swarm for the links
+            Stack<Crawler> swarm = createCrawlerSwarm(pageLinks);
+
+            while (!swarm.empty()) {
+                swarm.pop().run();
+            }
+
+            this.kill();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
     }
 
     // Constructor
     Crawler(String urlToCrawl) {
-        // Upon creation, update the global thread count
-        this.threadCount++;
-        // Setting the URL for this crawler
-        this.crawlerUrl = urlToCrawl;
+        if (threadCount < maxThreadCount) {
+            threadCount++;
+            this.crawlerUrl = urlToCrawl;
+            System.out.println("Current threads: " + threadCount + " \' This thread ID: " + this.threadId);
+        } else {
+            System.out.println("Max thread limit reached!");
+        }
     }
 
     // Gets the contents of a site
     private Document getSiteContents(String URL) throws IOException {
+        System.out.println(URL + ": ");
         return Jsoup.connect(URL).get();
     }
 
     // @Return Stack<String> | Gets a stack of links from a page's contents
     private Stack<String> getLinksFromSite(Document siteContents) {
-        // Stack to hold the links
+
         Stack<String> links = new Stack<String>();
-        // Getting all <a> tags from the site
         Elements siteAnchorTags = siteContents.select("a");
-        // Getting the link values from each of the tags
+
         for (Element anchorTag : siteAnchorTags) {
             links.push(anchorTag.attr("href"));
+            System.out.println("\t" + links.peek());
         }
-        // Returning the stack of links
+
         return links;
     }
 
@@ -86,7 +109,7 @@ public class Crawler implements Runnable {
         return this.newCrawlers;
     }
 
-    public void kill() {
+    private void kill() {
         threadCount--;
     }
 
